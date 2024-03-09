@@ -6,6 +6,8 @@
 #include "triangle.h"
 #include "log.h"
 
+extern Vector2i tileDimensionsArgv;
+
 void drawTriangle(void* gsOutput, ShaderProgram* sp)
 {
     triangleData data;
@@ -62,6 +64,8 @@ static void drawTrianglePreparation(
     for (uint8_t i = 0; i < 3; i++)
         data->isEdgeNotFlatTopOrLeft[i] = \
             !triangleIsEdgeFlatTopOrLeft(edgeVectors[i]);
+
+    LOGD("Bounding box dimensions: (%i, %i)\n", BBDimensions.x, BBDimensions.y);
 }
 
 static void drawTriangleRasterization(triangleData* data)
@@ -250,7 +254,7 @@ static void calculateTileDimensionsAndNTilesInBoundingBox(
 )
 {
     // TODO choose tile size
-    *tileDimensions = (Vector2i) {32, 32};
+    *tileDimensions = tileDimensionsArgv;
     *nTiles = (Vector2i) {
         ceil((double) BBDimensions.x / tileDimensions->x),
         ceil((double) BBDimensions.y / tileDimensions->y)

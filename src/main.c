@@ -7,7 +7,11 @@
 #include "Type.h"
 #include "log.h"
 
+#include <string.h>
+#include <assert.h>
+
 Context context;
+Vector2i tileDimensionsArgv;
 
 typedef struct
 {
@@ -21,13 +25,52 @@ void vertexShader(void* pVertex, void* pOutput)
 
 int main(int argc, char** argv)
 {
+    assert(argc == 4);
+
     constructContext(&context);
 
-    Vertex data[3] = {
-        {.position = {-0.5, -0.5,  0.0}},
-        {.position = { 0.0,  0.5,  0.0}},
-        {.position = { 0.5, -0.5,  0.0}}
-    };
+    char* tok, *subtok;
+    int i, j;
+
+    size_t neededFrames = atoi(argv[1]);
+
+    // argv[2] - triangle data (x1,y1,z1;x2,y2,z2;x3,y3,z3)
+    Vertex data[3];
+    char* saveptr_semic, *saveptr_comma;
+    i = 0;
+    tok = strtok_r(argv[2], ";", &saveptr_semic);
+    while (tok != NULL)
+    {
+        j = 0;
+        subtok = strtok_r(tok, ",", &saveptr_comma);
+        while (subtok != NULL)
+        {
+            data[i].position[j] = atof(subtok);
+            subtok = strtok_r(NULL, ",", &saveptr_comma);
+            j++;
+        }
+        tok = strtok_r(NULL, ";", &saveptr_semic);
+        i++;
+    }
+
+    // argv[3] - tile size (width,height)
+    int tiledims[2];
+    i = 0;
+    tok = strtok(argv[3], ",");
+    while (tok != NULL)
+    {
+        tiledims[i] = (int) atoi(tok);
+        i++;
+        tok = strtok(NULL, ",");
+    }
+    tileDimensionsArgv.x = tiledims[0];
+    tileDimensionsArgv.y = tiledims[1];
+
+    // Vertex data[3] = {
+    //     {.position = {-0.60, -0.45,  0.0}},
+    //     {.position = {-0.30,  0.60,  0.0}},
+    //     {.position = { 0.60, -0.45,  0.0}},
+    // };
     VertexAttribute attributes[1] = {{
         .nItems = 3,
         .type = TYPE_DOUBLE,
@@ -75,8 +118,8 @@ int main(int argc, char** argv)
             frametimeSec, 1 / frametimeSec, frameCount
         );
 
-        // if (frameCount == 5000)
-        //     break;
+        if (frameCount == neededFrames)
+            break;
     }
 
     freeVertexBuffer(vb);
